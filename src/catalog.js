@@ -32,7 +32,7 @@ export const DESIGNS = [
   {
     id: "tee-a",
     name: "We Are Okay! Tour Tee",
-    blurb: "Mustard tee. BEGUM and roses on the front, the tour poster and dates on the back.",
+    blurb: "180 GSM single jersey knit fabric, 100% cotton. Oversized fit. Bio-washed for a soft finish, with embroidered flowers.",
     price: 1500,
     venuePrice: null,
     image: "img/tee-tour-front.jpg",
