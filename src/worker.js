@@ -42,7 +42,12 @@ export default {
 
     let res;
     try {
-      res = await handler({ request, env, waitUntil: ctx.waitUntil.bind(ctx) });
+      // Holding and releasing stock takes several database steps. waitUntil
+      // lets them finish even if the buyer closes the page mid-request, so a
+      // dropped connection can't leave tees stuck as "held".
+      const work = handler({ request, env, waitUntil: ctx.waitUntil.bind(ctx) });
+      ctx.waitUntil(work.catch(() => {}));
+      res = await work;
     } catch (e) {
       console.error(e);
       res = Response.json({ error: "Something went wrong. Try again in a minute." }, { status: 500 });

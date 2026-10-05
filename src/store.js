@@ -47,8 +47,20 @@ export async function sweepExpired(db, now = Date.now()) {
     .bind(cutoff)
     .all();
   for (const o of results) {
-    const r = await db.prepare("UPDATE orders SET status = 'expired' WHERE id = ?1 AND status = 'pending'").bind(o.id).run();
-    if (r.meta.changes === 1) await release(db, o.city, await itemsFor(db, o.id));
+    const items = await itemsFor(db, o.id);
+    // One batch = one transaction: stock goes back and the order flips to
+    // expired together, or not at all. Each stock line only applies while the
+    // order is still pending, so a second sweep racing this one does nothing.
+    await db.batch([
+      ...items.map((it) =>
+        db
+          .prepare(
+            "UPDATE stock SET held = MAX(held - ?1, 0) WHERE sku = ?2 AND EXISTS (SELECT 1 FROM orders WHERE id = ?3 AND status = 'pending')"
+          )
+          .bind(it.qty, stockFor(o.city, it.design, it.size).key, o.id)
+      ),
+      db.prepare("UPDATE orders SET status = 'expired' WHERE id = ?1 AND status = 'pending'").bind(o.id),
+    ]);
   }
 }
 
@@ -96,23 +108,25 @@ export async function markPaid(env, ctx, rzpOrderId, paymentId) {
   if (order.status === "paid") return order;
 
   const now = Date.now();
-  const r = await db
-    .prepare("UPDATE orders SET status = 'paid', rzp_payment_id = ?1, paid_at = ?2 WHERE id = ?3 AND status IN ('pending', 'expired')")
-    .bind(paymentId, now, order.id)
-    .run();
-
-  if (r.meta.changes === 1) {
-    const items = await itemsFor(db, order.id);
-    if (order.status === "expired") {
-      // Hold had lapsed but the money came in, so take the stock back (may go over a cap).
-      await db.batch(
-        items.map((it) =>
-          db
-            .prepare("INSERT INTO stock (sku, held) VALUES (?2, ?1) ON CONFLICT(sku) DO UPDATE SET held = held + ?1")
-            .bind(it.qty, stockFor(order.city, it.design, it.size).key)
+  const items = await itemsFor(db, order.id);
+  // Same idea as sweepExpired: if the hold had lapsed but the money came in,
+  // take the stock back (may go over a cap) in the same transaction that marks
+  // it paid. Stock lines only apply if the order is expired at that moment, so
+  // this is also right when a sweep expires it between our read and this write.
+  const results = await db.batch([
+    ...items.map((it) =>
+      db
+        .prepare(
+          "INSERT INTO stock (sku, held) SELECT ?2, ?1 WHERE EXISTS (SELECT 1 FROM orders WHERE id = ?3 AND status = 'expired') ON CONFLICT(sku) DO UPDATE SET held = held + ?1"
         )
-      );
-    }
+        .bind(it.qty, stockFor(order.city, it.design, it.size).key, order.id)
+    ),
+    db
+      .prepare("UPDATE orders SET status = 'paid', rzp_payment_id = ?1, paid_at = ?2 WHERE id = ?3 AND status IN ('pending', 'expired')")
+      .bind(paymentId, now, order.id),
+  ]);
+
+  if (results[results.length - 1].meta.changes === 1) {
     const paid = { ...order, status: "paid", rzp_payment_id: paymentId, paid_at: now };
     if (env.SHEET_WEBHOOK_URL) {
       ctx.waitUntil(pushToSheet(env, paid, items).catch((e) => console.error("Sheet sync failed", e)));
