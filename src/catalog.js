@@ -42,7 +42,7 @@ export const DESIGNS = [
   {
     id: "tee-b",
     name: "All My Friends Tee",
-    blurb: "100% ring-spun super combed cotton, 240 GSM single jersey knit. Sky blue optic wash, with embroidery on the front.",
+    blurb: "100% ring-spun super combed cotton, 240 GSM single jersey knit. Sky blue optic wash, with embroidered flowers.",
     price: 1500,
     venuePrice: null,
     image: "img/tee-amfs-blue.jpg",
