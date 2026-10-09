@@ -14,8 +14,8 @@ export const TOUR = {
 // ordersCloseAt: when pre-orders stop for that city (IST).
 //   e.g. "2026-09-30T23:59:00+05:30". null keeps it open.
 export const CITIES = [
-  { id: "delhi",     code: "DEL", name: "Delhi",     venue: "Odella",           date: "9th Oct",  ordersCloseAt: null },
-  { id: "goa",       code: "GOA", name: "Goa",       venue: "Hideaway",         date: "10th Oct", ordersCloseAt: null },
+  { id: "delhi",     code: "DEL", name: "Delhi",     venue: "Odella",           date: "9th Oct",  ordersCloseAt: "2026-10-09T15:55:00+05:30" },
+  { id: "goa",       code: "GOA", name: "Goa",       venue: "Hideaway",         date: "10th Oct", ordersCloseAt: "2026-10-09T15:55:00+05:30" },
   { id: "mumbai",    code: "MUM", name: "Mumbai",    venue: "Raasta",           date: "15th Oct", ordersCloseAt: null },
   { id: "bangalore", code: "BLR", name: "Bangalore", venue: "The Humming Tree", date: "16th Oct", ordersCloseAt: null },
 ];
