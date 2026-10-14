@@ -16,8 +16,8 @@ export const TOUR = {
 export const CITIES = [
   { id: "delhi",     code: "DEL", name: "Delhi",     venue: "Odella",           date: "9th Oct",  ordersCloseAt: "2026-10-09T15:55:00+05:30" },
   { id: "goa",       code: "GOA", name: "Goa",       venue: "Hideaway",         date: "10th Oct", ordersCloseAt: "2026-10-09T15:55:00+05:30" },
-  { id: "mumbai",    code: "MUM", name: "Mumbai",    venue: "Raasta",           date: "15th Oct", ordersCloseAt: null },
-  { id: "bangalore", code: "BLR", name: "Bangalore", venue: "The Humming Tree", date: "16th Oct", ordersCloseAt: null },
+  { id: "mumbai",    code: "MUM", name: "Mumbai",    venue: "Raasta",           date: "15th Oct", ordersCloseAt: "2026-10-14T20:08:00+05:30" },
+  { id: "bangalore", code: "BLR", name: "Bangalore", venue: "The Humming Tree", date: "16th Oct", ordersCloseAt: "2026-10-14T20:08:00+05:30" },
 ];
 
 export const SIZES = ["S", "M", "L", "XL", "XXL"];
